@@ -116,7 +116,7 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs, device, 
             model_checkpoint,
             Path(run_directory) / f"best_rouge_t5_base_model.pth",
         )
-            print(f"Saved best rouge model with iou metric at epoch {epoch}")
+            print(f"Saved best rouge model at epoch {epoch}")
 
         if bleu_scores['bleu'] > best_model_bleu:
             best_model_bleu = bleu_scores['bleu']
@@ -124,7 +124,7 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs, device, 
             model_checkpoint,
             Path(run_directory) / f"best_bleu_t5_base_model.pth",
         )
-            print(f"Saved best bleu model with iou metric at epoch {epoch}")
+            print(f"Saved best bleu model at epoch {epoch}")
     
         metrics_df.to_csv(os.path.join(run_directory, "Metrics.csv"))
         
