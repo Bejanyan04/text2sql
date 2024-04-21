@@ -4,7 +4,6 @@ from data_loading import InputTextDataset
 from torch.utils.data import Dataset, DataLoader
 from transformers import T5Tokenizer, T5ForConditionalGeneration
 tokenizer = T5Tokenizer.from_pretrained("google-t5/t5-base")
-
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -16,7 +15,6 @@ def execute_query(db_path: str, query: str) -> list:
     Args:
     - db_path (str): Path to the SQLite database file.
     - query (str): SQL query to execute.
-
     Returns:
     - result (list): List of rows returned by the query execution, or -1 if an error occurs.
     """
@@ -37,8 +35,6 @@ def execute_query(db_path: str, query: str) -> list:
         return -1
     return result
 
-
-
 def compare_query_execution_results(db_path: str, predicted_query: str, reference_query: str) -> bool:
     """
     Compare the results of two SQL queries executed on the specified SQLite database.
@@ -47,22 +43,18 @@ def compare_query_execution_results(db_path: str, predicted_query: str, referenc
     - db_path (str): Path to the SQLite database file.
     - predicted_query (str): First SQL query to execute.
     - reference_query (str): Second SQL query to execute.
-
     """
     if compute_query_accuracy(predicted_query, reference_query):
         return 1 #similiar case
         
-
     # Execute both queries
     result1 = execute_query(db_path, reference_query)
     result2 = execute_query(db_path, predicted_query)
     
     if result1 == -1 or result2 == -1:
         return 0
-
     # Compare results
     similarity = int(result1 == result2)
-    
     return similarity
 
 
@@ -83,7 +75,6 @@ def get_sql_code(query_with_prefix, prefix = 'Generated SQL code:'):
         # If no prefix is found, return the original string
         return query_with_prefix.strip()
 
-
 def visualize_training_metrics(model_dir):
     df = pd.read_csv(os.path.join(model_dir, "Metrics.csv"))
     
@@ -101,40 +92,27 @@ def visualize_training_metrics(model_dir):
         'Training and Validation Loss', 'Validation Rouge Score', 'Validation Bleu Score'
     ]
     
-   
     for i, metric_pair in enumerate(metrics_to_plot):
         ax = axes[i]
         
         if isinstance(metric_pair, tuple):  
             train_metric, val_metric = metric_pair
-            
-        
             ax.plot(range(1, num_epochs + 1), df[train_metric], label='Train')
             ax.plot(range(1, num_epochs + 1), df[val_metric], label='Validation')
-            
             ax.set_ylabel('Value')
             ax.legend()
         else:  
-            metric = metric_pair
-            
-          
+            metric = metric_pair          
             ax.plot(range(1, num_epochs + 1), df[metric], label='Validation')
-            
             ax.set_ylabel('Value')
             ax.legend()
         
         ax.set_xlabel('Epoch')
         ax.set_title(titles[i])  # Set the title based on the metric name
-    
-  
     plt.tight_layout()
-
     image_path = os.path.join(model_dir, "metrics.jpg")
     plt.savefig(image_path)
-  
     plt.show()
-
-
 
 def load_model(model_checkpoint_path):
     model = T5ForConditionalGeneration.from_pretrained("google-t5/t5-base")
@@ -142,8 +120,6 @@ def load_model(model_checkpoint_path):
     model.load_state_dict(model_state_dict)
     model.eval()
     return model      
-
-
 
 def get_test_evaluation_metrics(df_path='text-to-sql_from_spider.csv', model_checkpoint_path =  'fine_tuning_text_sql_model/best_loss_t5_base_model.pth',
 spider_db_dir = 'database_folder/spider_databases/spider/database/', device= 'cpu'):
@@ -196,17 +172,12 @@ spider_db_dir = 'database_folder/spider_databases/spider/database/', device= 'cp
         predicted_query = get_sql_code(test_result[0])
         spider_sqlite_path = f'{spider_db_dir}/{spider_db_name[0]}/{spider_db_name[0]}.sqlite'
       
-    
     queries_excecution_comparision.append(compare_query_execution_results(db_path = spider_sqlite_path ,predicted_query = predicted_query, reference_query = gold_query))
-    
     queries_comparision.append(compute_query_accuracy(predicted_query = predicted_query, reference_query = gold_query))
-    
     
     rouge_scores = rouge_metric.compute()
     bleu_scores = bleu_metric.compute()
     test_loss = sum(batch_test_loss)/ len(batch_test_loss)
-
-
     execution_accuracy = sum(queries_excecution_comparision)/len(queries_excecution_comparision)
     query_accuracy =  sum(queries_comparision)/len(queries_comparision)
 
