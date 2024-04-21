@@ -17,13 +17,9 @@ from torch.utils.data import Dataset, DataLoader
 
 # Define your training and validation loop
 def train_model(model, train_loader, val_loader, optimizer, num_epochs, device, run_directory):
-
-    
     print(run_directory)
-    
     if not os.path.exists(run_directory):
         os.makedirs(run_directory)
-
 
 # Save model information to a JSON file
         model_info = {
@@ -53,27 +49,17 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs, device, 
     train_loss_epochs = []
     val_loss_epochs = []
     
-
     for epoch in range(num_epochs):
-        
         print(f"Epoch {epoch + 1}/{num_epochs}")
-
         batch_train_losses = []
-
         model.train()
         for train_data, train_target, train_attention_mask, spider_db_name in train_loader:
-           
             train_data, train_target, train_attention_mask = train_data.to(device).squeeze(), train_target.to(device).squeeze(), train_attention_mask.to(device).squeeze()
-         
             optimizer.zero_grad()
             output = model.generate(train_data, max_new_tokens = 2000)
-            
             loss = (model(input_ids=train_data, attention_mask=train_attention_mask, labels=train_target)).loss
             loss_value  = loss.item()
-            
             batch_train_losses.append(loss_value)
-            
-            
             loss.backward()
             optimizer.step()
 
@@ -100,11 +86,8 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs, device, 
                 decoded_val_target = [tokenizer.decode(val_target[0][val_target[0] != -100], skip_special_tokens=True)]
                 val_result = tokenizer.batch_decode(val_output, skip_special_tokens=True)
                 batch_val_loss.append( model(input_ids=val_data, attention_mask=val_attention_mask, labels=val_target).loss.item())
-
-                
                 # Compute Rouge scores
                 rouge_metric.add_batch(predictions= val_result, references= decoded_val_target)
-
                 # Compute BLEU scores
                 bleu_metric.add_batch(predictions= val_result, references= decoded_val_target)
 
@@ -118,9 +101,6 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs, device, 
         metrics_df.loc[epoch, 'val_rouge']  =  rouge_scores['rouge1']
         metrics_df.loc[epoch, 'val_loss']  =  epoch_val_loss
         metrics_df.loc[epoch, 'train_loss']  =  train_epoch_loss
-
-
-    
 
         if epoch_val_loss < best_model_loss:
             best_model_loss = epoch_val_loss
@@ -146,7 +126,6 @@ def train_model(model, train_loader, val_loader, optimizer, num_epochs, device, 
         )
             print(f"Saved best bleu model with iou metric at epoch {epoch}")
     
-
         metrics_df.to_csv(os.path.join(run_directory, "Metrics.csv"))
         
         torch.save(
@@ -176,14 +155,12 @@ def parse_args():
                         help="Device for model training (default: cpu)")
     parser.add_argument("--run_directory", type=str, default="fine_tuning_text_sql_model",
                         help="Directory where models and metrics will be saved (default: fine_tuning_text_sql_model)")
-
     return parser.parse_args()
 
 
 
 if __name__ == "__main__":
     args = parse_args()
-
     # Load dataset
     sql_df = pd.read_csv(args.df_path)
     train, test = train_test_split(sql_df, test_size=0.2, random_state=42, shuffle=True)
@@ -191,7 +168,7 @@ if __name__ == "__main__":
     val = val.reset_index()
     train = train.reset_index()
     test = test.reset_index()
-
+    
     # Initialize tokenizer and model
     tokenizer = T5Tokenizer.from_pretrained("google-t5/t5-base")
     model = T5ForConditionalGeneration.from_pretrained("google-t5/t5-base")
