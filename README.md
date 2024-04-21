@@ -1,6 +1,6 @@
 # T5 Text-to-SQL Conversion
 
-This project utilizes the T5 base model for the task of converting natural language queries into SQL queries. Fine-tuning of the T5 model is conducted with adjustments to various hyperparameters using values specified in JSON configuration files.
+This project utilizes the T5 base model for the task of converting natural language queries into SQL queries.
 
 ## Training Process
 
